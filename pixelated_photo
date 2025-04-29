@@ -1,0 +1,65 @@
+#使用前请安装python的pillow模块
+from PIL import Image
+
+def pixel_art_converter(
+    input_path,
+    output_path,
+    scale_factor=10,
+    palette_size=16,
+    add_grid=False,
+    grid_color=(0, 0, 0)
+):
+    """
+    将图片转换为像素风格
+    
+    参数：
+    - input_path: 输入文件路径
+    - output_path: 输出文件路径
+    - scale_factor: 像素块大小系数（越大像素块越大）
+    - palette_size: 调色板颜色数量（建议8-32）
+    - add_grid: 是否添加像素网格线
+    - grid_color: 网格线颜色
+    """
+    
+    # 原始图像处理
+    img = Image.open(input_path)
+    original_size = img.size
+    
+    # 第一步：缩小图像
+    small_size = (
+        original_size[0] // scale_factor,
+        original_size[1] // scale_factor
+    )
+    img_small = img.resize(small_size, Image.NEAREST)
+    
+    # 第二步：颜色量化
+    img_palette = img_small.quantize(palette_size)
+    img_rgb = img_palette.convert("RGB")
+    
+    # 第三步：放大还原
+    result = img_rgb.resize(original_size, Image.NEAREST)
+    
+    # 第四步：可选添加网格线
+    if add_grid:
+        pixels = result.load()
+        # 绘制水平线
+        for y in range(0, original_size[1], scale_factor):
+            for x in range(original_size[0]):
+                pixels[x, y] = grid_color
+        # 绘制垂直线
+        for x in range(0, original_size[0], scale_factor):
+            for y in range(original_size[1]):
+                pixels[x, y] = grid_color
+    
+    result.save(output_path)
+
+# 使用示例
+
+pixel_art_converter(
+    input_path="input.jpg",
+    output_path="output.png",
+    scale_factor=25,
+    palette_size=16,
+    add_grid=False,
+    grid_color=(40, 40, 40)
+)
